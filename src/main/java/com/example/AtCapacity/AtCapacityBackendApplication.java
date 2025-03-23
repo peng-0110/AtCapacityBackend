@@ -7,7 +7,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 @RestController
-@EnableAutoConfiguration(exclude={MongoAutoConfiguration.class})
 public class AtCapacityBackendApplication {
 
 	public static void main(String[] args) {
