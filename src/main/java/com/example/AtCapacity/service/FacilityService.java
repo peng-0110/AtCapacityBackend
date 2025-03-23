@@ -1,12 +1,14 @@
 package com.example.AtCapacity.service;
 
 import com.example.AtCapacity.model.Facility;
+import com.example.AtCapacity.model.FacilityType;
 import com.example.AtCapacity.repository.FacilityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class FacilityService {
@@ -66,6 +68,36 @@ public class FacilityService {
         return false;
     }
 
+    public boolean incrementOccupancyByName(String name) {
+        Optional<Facility> facilityOpt = facilityRepository.findByName(name);
+        
+        if (facilityOpt.isPresent()) {
+            Facility facility = facilityOpt.get();
+            boolean incremented = facility.incrementOccupancy();
+            
+            if (incremented) {
+                facilityRepository.save(facility);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean decrementOccupancyByName(String name) {
+        Optional<Facility> facilityOpt = facilityRepository.findByName(name);
+        
+        if (facilityOpt.isPresent()) {
+            Facility facility = facilityOpt.get();
+            boolean decremented = facility.decrementOccupancy();
+            
+            if (decremented) {
+                facilityRepository.save(facility);
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void updateFacility(Facility facility) {
         facilityRepository.save(facility);
     }
@@ -74,12 +106,39 @@ public class FacilityService {
         facilityRepository.deleteById(id);
     }
 
+    public void deleteFacilityByName(String name) {
+        facilityRepository.deleteByName(name);
+    }
+
     // New methods for querying by address or owner
     public List<Facility> getFacilitiesByOwner(String owner) {
         return facilityRepository.findByOwner(owner);
     }
 
-    public List<Facility> getFacilitiesByAddress(String address) {
-        return facilityRepository.findByAddress(address);
+    public List<Facility> findNearestFacilities(double latitude, double longitude, int limit) {
+        List<Facility> allFacilities = getAllFacilities();
+        
+        return allFacilities.stream()
+                .sorted((f1, f2) -> {
+                    double dist1 = f1.calculateDistance(latitude, longitude);
+                    double dist2 = f2.calculateDistance(latitude, longitude);
+                    return Double.compare(dist1, dist2);
+                })
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    public List<Facility> findNearestFacilities(double latitude, double longitude, int limit, FacilityType type) {
+        List<Facility> allFacilities = getAllFacilities();
+        
+        return allFacilities.stream()
+                .filter(facility -> type == null || facility.getType() == type)
+                .sorted((f1, f2) -> {
+                    double dist1 = f1.calculateDistance(latitude, longitude);
+                    double dist2 = f2.calculateDistance(latitude, longitude);
+                    return Double.compare(dist1, dist2);
+                })
+                .limit(limit)
+                .collect(Collectors.toList());
     }
 }
