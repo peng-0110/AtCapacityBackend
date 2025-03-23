@@ -52,12 +52,13 @@ public class FacilityController {
      * @param name unique name of the facility
      * @return the facility if found, or 404 if not found
      */
-    @GetMapping("/{name}")
-    public ResponseEntity<Facility> getFacilityByName(@PathVariable String name) {
+    @GetMapping
+    public ResponseEntity<Facility> getFacilityByName(@RequestParam String name) {
         Optional<Facility> facility = facilityService.getFacilityByName(name);
-        return facility.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    return facility.map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
 
     /**
      * Creates a new facility.
